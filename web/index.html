@@ -9,14 +9,185 @@
         margin: 0;
         padding: 0;
       }
+      .checkbox-group {
+        margin: 16px 0;
+      }
+      .checkbox-group label {
+        margin-right: 16px;
+      }
+      .form-group {
+        margin-bottom: 12px;
+      }
+      .result-group {
+        margin-top: 20px;
+        background: #f3f3f3; 
+        padding: 12px;
+        border-radius: 6px;
+      }
+      .result-group div {
+        margin-bottom: 8px;
+      }
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body>
     <div class="calculator">
       <h1>Calculadora Recico</h1>
+      <form id="recicoForm">
+        <div class="checkbox-group">
+          <label>
+            <input type="radio" name="tipo_importe" value="bruto" checked>
+            Importe Bruto
+          </label>
+          <label>
+            <input type="radio" name="tipo_importe" value="neto">
+            Importe Neto
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="selector">Tipo de Retención:</label>
+          <select id="selector" name="selector" onchange="actualizarFormulario()">
+            <option value="ret_isr_ret_iva">RET-ISR y RET-IVA</option>
+            <option value="ret_isr_sin_ret_iva">RET-ISR sin RET-IVA</option>
+            <option value="ret_isr">RET-ISR</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="grupo_porcentaje_iva">
+          <label for="porcentaje_iva">Porcentaje de IVA (%):</label>
+          <input type="number" id="porcentaje_iva" name="porcentaje_iva" step="0.01" min="0" max="100" value="16" required>
+        </div>
+
+        <div class="form-group">
+          <label for="cantidad">Cantidad:</label>
+          <input type="number" id="cantidad" name="cantidad" step="0.01" min="0" required>
+        </div>
+
+        <button type="button" onclick="calcular()">Calcular</button>
+      </form>
+
+      <div class="result-group" id="resultados" style="display:none;">
+        <div id="resultado_porcentaje_iva" class="hidden"></div>
+        <div id="resultado_cantidad" class="hidden"></div>
+        <div id="resultado_iva" class="hidden"></div>
+        <div id="resultado_retencion_iva" class="hidden"></div>
+        <div id="resultado_retencion_isr" class="hidden"></div>
+        <div id="resultado_neto" class="hidden"></div>
+      </div>
     </div>
     <script>
-      // JavaScript code can be added here
+      function actualizarFormulario() {
+        const selector = document.getElementById('selector').value;
+        const grupoPorcentajeIVA = document.getElementById('grupo_porcentaje_iva');
+        // Mostrar porcentaje IVA solo para opciones 1 y 2
+        if (selector === "ret_isr_ret_iva" || selector === "ret_isr_sin_ret_iva") {
+          grupoPorcentajeIVA.classList.remove('hidden');
+          document.getElementById('porcentaje_iva').required = true;
+        } else {
+          grupoPorcentajeIVA.classList.add('hidden');
+          document.getElementById('porcentaje_iva').required = false;
+        }
+      }
+
+      function calcular() {
+        const tipoImporte = document.querySelector('input[name="tipo_importe"]:checked').value;
+        const selector = document.getElementById('selector').value;
+        const cantidad = parseFloat(document.getElementById('cantidad').value);
+        let porcentajeIVA = 0;
+        if (selector === "ret_isr_ret_iva" || selector === "ret_isr_sin_ret_iva") {
+          porcentajeIVA = parseFloat(document.getElementById('porcentaje_iva').value);
+        }
+
+        if (isNaN(cantidad) || ( (selector !== "ret_isr") && isNaN(porcentajeIVA) )) {
+          alert('Por favor ingresa valores válidos.');
+          return;
+        }
+
+        // Calcular IVA
+        let base = cantidad;
+        let iva = 0;
+        if (selector !== "ret_isr") {
+          if (tipoImporte === "bruto") {
+            iva = cantidad * (porcentajeIVA / 100);
+          } else {
+            base = cantidad / (1 + porcentajeIVA / 100);
+            iva = cantidad - base;
+          }
+        }
+
+        // Retenciones
+        let retencionIVA = 0;
+        let retencionISR = 0;
+        let neto = 0;
+
+        // Tasas
+        const tasaRetencionIVA = 0.106667; // 10.6667%
+        const tasaRetencionISR = 1.25 / 100; // 1.25% del monto base
+
+        // Limpiar resultados
+        document.getElementById('resultado_porcentaje_iva').classList.add('hidden');
+        document.getElementById('resultado_cantidad').classList.add('hidden');
+        document.getElementById('resultado_iva').classList.add('hidden');
+        document.getElementById('resultado_retencion_iva').classList.add('hidden');
+        document.getElementById('resultado_retencion_isr').classList.add('hidden');
+        document.getElementById('resultado_neto').classList.add('hidden');
+
+        // Opción 1: RET-ISR y RET-IVA
+        if (selector === "ret_isr_ret_iva") {
+          retencionIVA = base * tasaRetencionIVA;
+          retencionISR = base * tasaRetencionISR;
+          neto = base + iva - retencionIVA - retencionISR;
+
+          document.getElementById('resultado_porcentaje_iva').innerText = `Porcentaje de IVA: ${porcentajeIVA.toFixed(2)}%`;
+          document.getElementById('resultado_porcentaje_iva').classList.remove('hidden');
+          document.getElementById('resultado_cantidad').innerText = `Cantidad: $${base.toFixed(2)}`;
+          document.getElementById('resultado_cantidad').classList.remove('hidden');
+          document.getElementById('resultado_iva').innerText = `Importe de IVA: $${iva.toFixed(2)}`;
+          document.getElementById('resultado_iva').classList.remove('hidden');
+          document.getElementById('resultado_retencion_iva').innerText = `Importe de retención de IVA: $${retencionIVA.toFixed(2)}`;
+          document.getElementById('resultado_retencion_iva').classList.remove('hidden');
+          document.getElementById('resultado_retencion_isr').innerText = `Importe de retención de ISR: $${retencionISR.toFixed(2)}`;
+          document.getElementById('resultado_retencion_isr').classList.remove('hidden');
+          document.getElementById('resultado_neto').innerText = `Importe neto: $${neto.toFixed(2)}`;
+          document.getElementById('resultado_neto').classList.remove('hidden');
+        }
+        // Opción 2: RET-ISR sin RET-IVA
+        else if (selector === "ret_isr_sin_ret_iva") {
+          retencionISR = base * tasaRetencionISR;
+          neto = base + iva - retencionISR;
+
+          document.getElementById('resultado_porcentaje_iva').innerText = `Porcentaje de IVA: ${porcentajeIVA.toFixed(2)}%`;
+          document.getElementById('resultado_porcentaje_iva').classList.remove('hidden');
+          document.getElementById('resultado_cantidad').innerText = `Cantidad: $${base.toFixed(2)}`;
+          document.getElementById('resultado_cantidad').classList.remove('hidden');
+          document.getElementById('resultado_iva').innerText = `Importe de IVA: $${iva.toFixed(2)}`;
+          document.getElementById('resultado_iva').classList.remove('hidden');
+          document.getElementById('resultado_retencion_isr').innerText = `Importe de retención de ISR: $${retencionISR.toFixed(2)}`;
+          document.getElementById('resultado_retencion_isr').classList.remove('hidden');
+          document.getElementById('resultado_neto').innerText = `Importe neto: $${neto.toFixed(2)}`;
+          document.getElementById('resultado_neto').classList.remove('hidden');
+        }
+        // Opción 3: RET-ISR
+        else if (selector === "ret_isr") {
+          retencionISR = base * tasaRetencionISR;
+          neto = base - retencionISR;
+
+          document.getElementById('resultado_cantidad').innerText = `Cantidad: $${base.toFixed(2)}`;
+          document.getElementById('resultado_cantidad').classList.remove('hidden');
+          document.getElementById('resultado_retencion_isr').innerText = `Importe de retención de ISR: $${retencionISR.toFixed(2)}`;
+          document.getElementById('resultado_retencion_isr').classList.remove('hidden');
+          document.getElementById('resultado_neto').innerText = `Importe neto: $${neto.toFixed(2)}`;
+          document.getElementById('resultado_neto').classList.remove('hidden');
+        }
+
+        document.getElementById('resultados').style.display = 'block';
+      }
+
+      // Inicializar formulario
+      actualizarFormulario();
     </script>
   </body>
 </html>
