@@ -30,11 +30,56 @@
       .hidden {
         display: none;
       }
+      /* Azul rey: #0033a0 */
+      .reset-btn {
+        margin-top: 20px;
+        padding: 8px 20px;
+        background: #0033a0;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.2s;
+      }
+      .reset-btn:hover {
+        background: #002080;
+      }
+      .royalblue-btn {
+        padding: 8px 20px;
+        background: #0033a0;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.2s;
+      }
+      .royalblue-btn:hover {
+        background: #002080;
+      }
+      .header-flex {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .logo-img {
+        height: 60px;
+        width: 60px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #fff;
+        border: 1px solid #ccc;
+      }
     </style>
   </head>
   <body>
     <div class="calculator">
-      <h1>Calculadora Recico</h1>
+      <div class="header-flex">
+        <h1>Calculadora Recico</h1>
+        <img src="c:/Users/perva/Downloads/WhatsApp Image 2025-10-15 at 10.43.44.jpeg" alt="Logo" class="logo-img" />
+      </div>
       <form id="recicoForm">
         <div class="checkbox-group">
           <label>
@@ -66,7 +111,7 @@
           <input type="number" id="cantidad" name="cantidad" step="0.01" min="0" required>
         </div>
 
-        <button type="button" onclick="calcular()">Calcular</button>
+        <button type="button" class="royalblue-btn" onclick="calcular()">Calcular</button>
       </form>
 
       <div class="result-group" id="resultados" style="display:none;">
@@ -77,6 +122,8 @@
         <div id="resultado_retencion_isr" class="hidden"></div>
         <div id="resultado_neto" class="hidden"></div>
       </div>
+
+      <button class="reset-btn" onclick="resetearPagina()">RESET</button>
     </div>
     <script>
       function actualizarFormulario() {
@@ -184,6 +231,10 @@
         }
 
         document.getElementById('resultados').style.display = 'block';
+      }
+
+      function resetearPagina() {
+        window.location.reload();
       }
 
       // Inicializar formulario
